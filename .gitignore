@@ -1,0 +1,30 @@
+# Local databases / private data
+*.db
+*.sqlite
+*.sqlite3
+llm_wiki*.db
+project2mindmap*.db
+radiology*.db
+finance*.db
+
+# Local env/secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+project2mindmap_seed.json

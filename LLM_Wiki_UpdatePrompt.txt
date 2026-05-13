@@ -1,0 +1,275 @@
+You are continuing maintenance of an existing portable LLM Wiki database.
+
+An existing SQLite database named llm_wiki.db has been uploaded in this session.
+
+Your task is to update this existing database using ONLY the currently accessible session content and uploaded files.
+
+Do NOT create a new seed database unless the uploaded database is unreadable.
+If the uploaded database is unreadable, stop and report the exact issue instead of silently creating a new unrelated database.
+
+============================================================
+PRIMARY OBJECTIVE
+============================================================
+
+Maintain the same LLM Wiki intention and structure as the existing database.
+
+The database follows the LLM Wiki pattern:
+
+1. Raw sources are preserved as source-of-truth records.
+2. Synthesized wiki pages are maintained separately from raw sources.
+3. Pages are interlinked.
+4. Important claims have source provenance.
+5. The database stores equivalents of index.md and log.md.
+6. New sources update existing pages instead of creating disconnected summaries.
+7. Contradictions, stale claims, open questions, and maintenance issues are tracked.
+8. The wiki should compound across sessions without losing provenance.
+
+============================================================
+STRICT UPDATE MODE
+============================================================
+
+This is an update operation, not a fresh creation operation.
+
+You must:
+
+1. Read the uploaded llm_wiki.db first.
+2. Inspect its schema.
+3. Preserve the existing schema unless a safe additive change is necessary.
+4. Read existing schema_rules and follow them.
+5. Preserve existing projects, sources, source_chunks, wiki_pages, claims, links, index_entries, operation_log, change_log, lint_findings, open_questions, tasks, tags, aliases, and audit records.
+6. Add a new ingestion_sessions row for this session.
+7. Add new sources and source_chunks only for content actually accessible in this session.
+8. Update existing wiki_pages only when current evidence improves, corrects, or extends them.
+9. Create wiki_page_versions before significantly changing existing pages.
+10. Add new wiki_pages only for reusable project knowledge.
+11. Merge duplicates using aliases.
+12. Add or update index_entries.
+13. Add operation_log and change_log entries.
+14. Add lint_findings for contradictions, stale claims, duplicate pages, missing evidence, or uncertainty.
+15. Run PRAGMA integrity_check after writing.
+16. Output a new updated database file.
+
+Do NOT:
+
+1. Delete existing data unless explicitly instructed.
+2. Overwrite strong old content with weaker new content.
+3. Treat model memory as source evidence.
+4. Use unavailable historical chats.
+5. Use unavailable project files.
+6. Use web search unless explicitly requested.
+7. Invent missing source content.
+8. Claim full session history access unless the content is actually available.
+9. Recreate the database from scratch if the uploaded database is readable.
+10. Paste the full database content in the final response.
+
+============================================================
+CURRENT ACCESSIBLE SOURCES
+============================================================
+
+Use ONLY:
+
+1. The uploaded llm_wiki.db.
+2. The current chat content that is actually accessible.
+3. Files uploaded in this session.
+4. Pasted text in this session.
+5. Explicitly supplied source exports or transcripts.
+6. Web content only if the user explicitly requests web search.
+
+If historical chats, files, repositories, folders, or project sources are mentioned but not actually accessible, record them as inaccessible in source_manifest and extraction_audit.
+
+============================================================
+ACCESS REALITY CHECK
+============================================================
+
+Before extraction, record an access check in extraction_audit.
+
+Check:
+
+1. Uploaded llm_wiki.db.
+2. Current chat content.
+3. Uploaded files.
+4. Uploaded raw chat transcripts.
+5. Project folder or repository.
+6. Source manifest or file list.
+7. Papers or documents.
+8. Code files or notebooks.
+9. Web content.
+10. Ability to create files directly.
+
+Use statuses:
+
+- accessible
+- partially_accessible
+- not_provided
+- inaccessible
+- unsupported
+
+If the uploaded database cannot be read, stop and explain the issue.
+
+============================================================
+SOURCE HANDLING
+============================================================
+
+Treat this session as a new source or source group.
+
+Create a source record such as:
+
+Current session update
+
+Source type:
+current_chat
+
+Chunk the accessible current chat into coherent topic chunks.
+
+For uploaded files:
+- parse supported files;
+- add source_manifest rows;
+- add sources rows;
+- add source_chunks;
+- mark unsupported files as unsupported;
+- mark unrelated files as out_of_scope;
+- mark duplicate files as duplicate.
+
+Do not modify existing raw source_chunks.
+
+============================================================
+PAGE UPDATE RULES
+============================================================
+
+For each relevant new source chunk:
+
+1. Identify affected existing wiki_pages.
+2. Update existing pages when appropriate.
+3. Create new pages only when the concept is reusable and project-relevant.
+4. Add source_summary pages for significant new sources.
+5. Add claims for important factual, interpretive, decision, limitation, or task statements.
+6. Attach claim_sources and page_sources.
+7. Add wiki_links between related pages.
+8. Update aliases for naming variants.
+9. Update tags if useful.
+10. Update index_entries.
+
+Before making a significant change to an existing page:
+- insert the previous body into wiki_page_versions;
+- record the change in change_log.
+
+If new evidence conflicts with old content:
+- do not silently overwrite;
+- add or update a lint_finding of type contradiction or stale_claim;
+- update the page to clearly distinguish old and new information if evidence supports it.
+
+============================================================
+DEDUPLICATION RULES
+============================================================
+
+Before creating any new wiki_page:
+
+1. Search existing pages by title, slug, aliases, tags, and summary.
+2. Reuse existing page if the concept already exists.
+3. Add aliases instead of creating duplicates.
+4. If uncertain, create a lint_finding or extraction_audit note instead of duplicating.
+
+============================================================
+CONFIDENCE RULES
+============================================================
+
+Use confidence scores:
+
+0.90–1.00:
+Directly stated in accessible source.
+
+0.70–0.89:
+Strongly supported by accessible source.
+
+0.50–0.69:
+Reasonable inference from accessible source.
+
+0.20–0.49:
+Weak inference or scaffold.
+
+Below 0.20:
+Omit unless recording as audit warning, lint finding, or open question.
+
+============================================================
+LINT PASS
+============================================================
+
+After updating, run an internal lint pass.
+
+Check for:
+
+1. Duplicate pages.
+2. Orphan pages.
+3. Unsupported claims.
+4. Missing source links.
+5. Contradictions.
+6. Stale claims.
+7. Missing index entries.
+8. Missing cross-links.
+9. Open questions without related pages.
+10. Tasks without source rationale.
+11. Schema drift.
+12. Weakly supported new content.
+
+Record findings in lint_findings and extraction_audit.
+
+============================================================
+OUTPUT FILE REQUIREMENTS
+============================================================
+
+Create a new updated SQLite database file.
+
+Do not overwrite the uploaded file in-place.
+
+Use a filename like:
+
+llm_wiki_updated.db
+
+or, if possible:
+
+llm_wiki_YYYYMMDD_updated.db
+
+Also create an optional JSON export:
+
+llm_wiki_updated.json
+
+The JSON export should reflect the updated database content.
+
+After writing the database:
+
+1. Run PRAGMA integrity_check.
+2. Count rows in all tables.
+3. Confirm this was an update, not a seed.
+4. Summarize major pages updated.
+5. Summarize major pages created.
+6. Summarize major links created or updated.
+7. Summarize major claims added.
+8. Summarize open questions and tasks added.
+9. Summarize lint findings.
+10. Summarize warnings and inaccessible sources.
+
+============================================================
+FINAL RESPONSE REQUIREMENTS
+============================================================
+
+Final response must include:
+
+1. Link/path to updated database.
+2. Link/path to JSON export if created.
+3. PRAGMA integrity_check result.
+4. Table-count summary.
+5. Confirmation that this was an update of the uploaded database.
+6. Major pages created.
+7. Major pages updated.
+8. Major links or claims added.
+9. Open questions or tasks added.
+10. Lint findings.
+11. Warnings about inaccessible, unsupported, duplicate, skipped, or out-of-scope sources.
+12. Any fallback behavior used.
+
+Do not paste the full database.
+Do not paste all wiki pages.
+Do not hallucinate unavailable project history.
+Do not claim to have parsed inaccessible chats or files.
+
+Begin the update now.

@@ -1,0 +1,66 @@
+import type { CandidateGroup, DashboardPayload, GraphPayload, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
+
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
+
+export function apiUrl(path: string): string {
+  return `${API_BASE}${path}`;
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(apiUrl(path), {
+    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+    ...options,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Request failed with ${response.status}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+function assertCompatibleMetadata(payload: MetadataPayload): MetadataPayload {
+  if (!payload.database_profile || !payload.code_profile_version || payload.api_prefix !== "/api") {
+    throw new Error(
+      "Backend is stale or incompatible. Restart the backend with scripts/start.ps1, then check http://127.0.0.1:8000/api/metadata.",
+    );
+  }
+  return payload;
+}
+
+export const api = {
+  health: () => request<{ status: string; app: string }>("/health"),
+  metadata: () => request<MetadataPayload>("/metadata").then(assertCompatibleMetadata),
+  switchDatabase: (databaseName: string) =>
+    request<MetadataPayload>("/databases/switch", {
+      method: "POST",
+      body: JSON.stringify({ database_name: databaseName }),
+    }),
+  tree: (projectId: string) => request<TreePayload>(`/projects/${projectId}/tree`),
+  dashboard: (projectId: string) => request<DashboardPayload>(`/projects/${projectId}/dashboard`),
+  graph: (projectId: string) => request<GraphPayload>(`/projects/${projectId}/graph`),
+  nodeDetail: (projectId: string, nodeId: string) => request<NodeDetail>(`/projects/${projectId}/nodes/${nodeId}`),
+  search: (projectId: string, query: string) =>
+    request<TreeNode[]>(`/projects/${projectId}/search?q=${encodeURIComponent(query)}`),
+  createIngestion: (projectId: string, payload: unknown) =>
+    request<{ job_id: string; warnings: string[]; candidate_counts: Record<string, number> }>(
+      `/projects/${projectId}/ingestion/jobs`,
+      { method: "POST", body: JSON.stringify(payload) },
+    ),
+  candidates: (jobId: string) => request<CandidateGroup>(`/ingestion/jobs/${jobId}/candidates`),
+  patchCandidate: (kind: "nodes" | "edges" | "details", id: string, patch: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/ingestion/candidates/${kind}/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+  commit: (jobId: string) =>
+    request<{ status: string; created: Record<string, string[]>; updated: Record<string, string[]> }>(
+      `/ingestion/jobs/${jobId}/commit`,
+      { method: "POST" },
+    ),
+  exportJson: (projectId: string) => request<Record<string, unknown>>(`/projects/${projectId}/export/json`),
+  exportText: async (projectId: string, format: "markdown" | "mermaid") => {
+    const response = await fetch(apiUrl(`/projects/${projectId}/export/${format}`));
+    if (!response.ok) throw new Error(await response.text());
+    return response.text();
+  },
+};
