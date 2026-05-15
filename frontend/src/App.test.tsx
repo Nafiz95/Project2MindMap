@@ -14,7 +14,7 @@ vi.mock("./api/client", () => ({
       nodes: [
         {
           id: "vlm_radiology",
-          title: "VLM Radiology Research Program",
+          title: "Demo Research Map",
           category: "Root",
           status: "active",
           importance: "high",
@@ -101,7 +101,7 @@ vi.mock("./api/client", () => ({
       node: {
         id: "vlm_radiology",
         project_id: "vlm_radiology",
-        title: "VLM Radiology Research Program",
+        title: "Demo Research Map",
         slug: "vlm_radiology",
         category: "Root",
         status: "active",
@@ -128,5 +128,6 @@ vi.mock("./api/client", () => ({
 
 test("renders seeded project tree", async () => {
   render(<App />);
-  expect((await screen.findAllByText("VLM Radiology Research Program")).length).toBeGreaterThan(0);
+  expect(await screen.findByRole("heading", { name: "Project2MindMap" })).toBeInTheDocument();
+  expect(screen.queryByText("VLM Radiology Research Program")).not.toBeInTheDocument();
 });

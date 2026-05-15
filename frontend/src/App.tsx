@@ -152,7 +152,6 @@ function App() {
       <header className="topBar">
         <div>
           <h1>Project2MindMap</h1>
-          <p>VLM Radiology Research Program</p>
         </div>
         <nav className="tabs">
           {(["dashboard", "tree", "graph", "database", "export"] as ViewName[]).map((item) => (
