@@ -124,21 +124,11 @@ vi.mock("./api/client", () => ({
     }),
     exportJson: async () => ({}),
     activity: async () => [],
-    listJobs: async () => [],
-    candidates: async () => ({
-      job_id: "",
-      source_note: "",
-      source_title: "",
-      blocking_errors: [],
-      node_candidates: [],
-      edge_candidates: [],
-      detail_candidates: [],
-    }),
   },
 }));
 
 test("renders seeded project tree", async () => {
   render(<App />);
-  expect(await screen.findByRole("heading", { name: "Project2MindMap" })).toBeInTheDocument();
+  expect(await screen.findByAltText("Project2MindMap")).toBeInTheDocument();
   expect(screen.queryByText("VLM Radiology Research Program")).not.toBeInTheDocument();
 });

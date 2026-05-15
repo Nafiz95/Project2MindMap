@@ -23,7 +23,7 @@ button:disabled { color: var(--muted); cursor: default; opacity: 0.6; }
 
 .appShell { min-height: 100vh; }
 .topBar {
-  min-height: 64px;
+  min-height: 108px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -43,7 +43,7 @@ button:disabled { color: var(--muted); cursor: default; opacity: 0.6; }
   display: grid;
   grid-template-columns: minmax(300px, 360px) minmax(520px, 1fr);
   gap: 1px;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 108px);
   background: var(--rule-soft);
 }
 .leftPane, .mainPane, .rightPane {
@@ -425,119 +425,6 @@ mark.spotlightMark {
   padding: 0 1px;
 }
 
-/* Review Studio */
-.reviewLayout {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-height: calc(100vh - 76px);
-}
-.reviewJobHeader {
-  padding: 14px 28px;
-  border-bottom: 1px solid var(--rule);
-  background: var(--panel);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-.reviewColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  overflow: hidden;
-}
-.reviewRawCol {
-  border-right: 1px solid var(--rule);
-  padding: 22px 24px;
-  overflow-y: auto;
-  background: var(--paper);
-}
-.reviewCandidateCol {
-  padding: 22px 24px;
-  overflow-y: auto;
-  background: var(--paper);
-}
-.candidateCard {
-  background: var(--white);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-card);
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-.candidateCardHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--rule-soft);
-}
-.candidateCardBody {
-  padding: 10px 12px;
-}
-.decBtn {
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--white);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: var(--ink-2);
-  padding: 0;
-  transition: background 0.1s, color 0.1s;
-}
-.decBtn:hover { background: var(--paper-deep); }
-.decBtn.active.approve { background: oklch(0.65 0.15 145); color: #fff; border-color: transparent; }
-.decBtn.active.reject  { background: oklch(0.65 0.15 25);  color: #fff; border-color: transparent; }
-.decBtn.active.edit    { background: oklch(0.78 0.13 60);   color: #fff; border-color: transparent; }
-.rawQuoteBlock {
-  background: var(--panel);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-panel);
-  padding: 14px 16px;
-  font-family: var(--font-serif);
-  font-size: 14.5px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.rawHighlightNode   { background: oklch(0.93 0.06 145); padding: 1px 3px; border-radius: 2px; }
-.rawHighlightOpenQ  { background: oklch(0.93 0.06 60);  padding: 1px 3px; border-radius: 2px; }
-.rawHighlightLimit  { background: oklch(0.93 0.06 25);  padding: 1px 3px; border-radius: 2px; }
-.candidateWarning {
-  background: oklch(0.95 0.04 80);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink-2);
-  padding: 5px 10px;
-  margin-top: 4px;
-}
-.reviewCommitBtn {
-  padding: 7px 16px;
-  border-radius: 4px;
-  background: var(--ink);
-  color: var(--white);
-  border: none;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.reviewCommitBtn:disabled { background: var(--muted); cursor: default; }
-.statusPill {
-  background: oklch(0.93 0.04 80);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.4px;
-  padding: 3px 8px;
-  border-radius: var(--r-chip);
-  color: var(--ink-2);
-}
-
 /* Focus view */
 .focusLayout {
   display: grid;
@@ -763,112 +650,6 @@ mark.spotlightMark {
   border-radius: 2px;
   transition: width 0.3s ease;
 }
-
-/* Outline view */
-.outlineLayout {
-  display: grid;
-  grid-template-columns: 230px 1fr 310px;
-  min-height: calc(100vh - 76px);
-}
-.outlineTreeRail {
-  border-right: 1px solid var(--rule);
-  padding: 20px 16px;
-  overflow-y: auto;
-  background: var(--panel);
-}
-.outlineDocCol {
-  padding: 40px 64px;
-  overflow-y: auto;
-  background: var(--paper);
-}
-.outlineEvidenceRail {
-  border-left: 1px solid var(--rule);
-  padding: 20px 16px;
-  overflow-y: auto;
-  background: var(--panel);
-}
-.sectionRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  color: var(--ink-2);
-}
-.sectionRow:hover { background: var(--paper-deep); }
-.sectionRow.active { background: var(--paper-deep); font-weight: 600; }
-.evidenceChipInline {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 3px;
-  padding: 1px 7px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  vertical-align: baseline;
-  position: relative;
-}
-.evidenceChipRow {
-  background: var(--white);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-chip);
-  padding: 5px 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--ink);
-}
-.evidenceSuggestCard {
-  border: 1px dashed var(--rule);
-  border-radius: var(--r-chip);
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-}
-.openIssueBlock {
-  border-left: 2px solid var(--amber);
-  background: oklch(0.97 0.03 80 / 0.4);
-  padding: 10px 14px;
-  margin: 16px 0;
-  border-radius: 4px;
-}
-.inlinePickerContainer {
-  position: absolute;
-  z-index: 200;
-  background: var(--panel);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-panel);
-  box-shadow: var(--shadow-modal);
-  width: 280px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-.inlinePickerRow {
-  padding: 6px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  color: var(--ink-2);
-}
-.inlinePickerRow:hover,
-.inlinePickerRow.active { background: var(--paper-deep); }
 
 /* Mono caption utility */
 .monoCap {

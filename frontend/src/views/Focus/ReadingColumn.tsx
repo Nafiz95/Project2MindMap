@@ -1,17 +1,13 @@
 import type { NodeDetail } from "../../types";
 import { CatPill } from "../../components/primitives/CatPill";
 import { StatusDot } from "../../components/primitives/StatusDot";
-import { WRITING_CATEGORIES } from "../../styles/catTokens";
 
 export function ReadingColumn({
   detail,
-  onNavigate,
 }: {
   detail: NodeDetail;
-  onNavigate: (view: string) => void;
 }) {
   const node = detail.node;
-  const isWriting = WRITING_CATEGORIES.has(node.category);
   const sorted = [...detail.detail_blocks].sort((a, b) => a.sort_order - b.sort_order);
 
   return (
@@ -72,27 +68,6 @@ export function ReadingColumn({
         </section>
       ))}
 
-      {/* Open in Outline button for Writing/Grant/Paper */}
-      {isWriting && (
-        <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--rule-soft)" }}>
-          <button
-            onClick={() => onNavigate("outline")}
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              fontWeight: 500,
-              color: "var(--accent)",
-              background: "none",
-              border: "1px solid var(--accent)",
-              borderRadius: 4,
-              padding: "7px 14px",
-              cursor: "pointer",
-            }}
-          >
-            Open in Outline →
-          </button>
-        </div>
-      )}
     </div>
   );
 }

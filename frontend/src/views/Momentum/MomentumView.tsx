@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
-import type { ActivityEvent, DashboardPayload, TreePayload } from "../../types";
+import type { ActivityEvent, TreePayload } from "../../types";
 import { SkeletonBlock } from "../../components/primitives/SkeletonBlock";
 import { MomentumHeader } from "./MomentumHeader";
 import { ActivityHeatmap } from "./ActivityHeatmap";
@@ -11,13 +11,11 @@ import { ActiveFronts } from "./ActiveFronts";
 export function MomentumView({
   projectId,
   tree,
-  dashboard,
   onNavigate,
   onSelect,
 }: {
   projectId: string;
   tree: TreePayload | null;
-  dashboard: DashboardPayload | null;
   onNavigate: (view: string, nodeId?: string) => void;
   onSelect: (id: string) => void;
 }) {
@@ -74,8 +72,6 @@ export function MomentumView({
         <div className="momentumRightCol">
           <AttentionCards
             nodes={nodes}
-            dashboard={dashboard}
-            projectId={projectId}
             onNavigate={onNavigate}
             onSelect={onSelect}
           />

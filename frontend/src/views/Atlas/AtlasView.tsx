@@ -35,7 +35,9 @@ export function AtlasView({
   const [dims, setDims] = useState({ w: 800, h: 600 });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Apply lens preset to visible categories
+  // Apply lens preset to visible categories.
+  // allCategories is intentionally omitted from deps: the preset should only
+  // fire when the user switches lenses, not on every graph data refresh.
   useEffect(() => {
     const preset = LENS_CATEGORIES[activeLens];
     if (preset === null) {

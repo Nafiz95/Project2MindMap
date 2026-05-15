@@ -84,12 +84,6 @@ export function Spotlight({
           },
         ]
       : []),
-    {
-      id: "new-ingestion",
-      label: "New ingestion job from clipboard",
-      shortcut: "⌘N",
-      action: () => { onNavigate("review"); onClose(); },
-    },
   ];
 
   const nodeResults = results.filter((r) => r.category !== "Source" && r.category !== "Running Log");

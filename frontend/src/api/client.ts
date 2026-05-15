@@ -1,4 +1,4 @@
-import type { ActivityEvent, CandidateGroup, DashboardPayload, GraphPayload, IngestionJobSummary, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
+import type { ActivityEvent, DashboardPayload, GraphPayload, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
@@ -41,26 +41,6 @@ export const api = {
   nodeDetail: (projectId: string, nodeId: string) => request<NodeDetail>(`/projects/${projectId}/nodes/${nodeId}`),
   search: (projectId: string, query: string) =>
     request<TreeNode[]>(`/projects/${projectId}/search?q=${encodeURIComponent(query)}`),
-  createIngestion: (projectId: string, payload: unknown) =>
-    request<{ job_id: string; warnings: string[]; candidate_counts: Record<string, number> }>(
-      `/projects/${projectId}/ingestion/jobs`,
-      { method: "POST", body: JSON.stringify(payload) },
-    ),
-  candidates: (jobId: string) => request<CandidateGroup>(`/ingestion/jobs/${jobId}/candidates`),
-  patchCandidate: (kind: "nodes" | "edges" | "details", id: string, patch: Record<string, unknown>) =>
-    request<Record<string, unknown>>(`/ingestion/candidates/${kind}/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(patch),
-    }),
-  commit: (jobId: string) =>
-    request<{ status: string; created: Record<string, string[]>; updated: Record<string, string[]> }>(
-      `/ingestion/jobs/${jobId}/commit`,
-      { method: "POST" },
-    ),
-  reject: (jobId: string) =>
-    request<{ status: string }>(`/ingestion/jobs/${jobId}/reject`, { method: "POST" }),
-  listJobs: (projectId: string) =>
-    request<IngestionJobSummary[]>(`/projects/${projectId}/ingestion/jobs`),
   activity: (projectId: string, since: string, limit = 50) =>
     request<ActivityEvent[]>(
       `/projects/${projectId}/activity?since=${encodeURIComponent(since)}&limit=${limit}`,

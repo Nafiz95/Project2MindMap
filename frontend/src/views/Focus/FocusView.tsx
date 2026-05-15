@@ -78,7 +78,7 @@ export function FocusView({
   return (
     <div className="featureView focusLayout">
       <BreadcrumbRail nodeId={nodeId} nodesById={nodesById} onSelect={onSelect} />
-      <ReadingColumn detail={detail} onNavigate={onNavigate} />
+      <ReadingColumn detail={detail} />
       <ConnectionsRail detail={detail} onSelect={onSelect} />
     </div>
   );
