@@ -266,6 +266,18 @@ Project2MindMap/
 
 ---
 
+## Creating and updating `llm_wiki.db`
+
+The `llm_wiki.db` file is the core database used by the app. It is generated and maintained through the LLM wiki prompt workflow:
+
+1. For the first session of a project, use [`LLM_Wiki_InitPrompt.txt`](LLM_Wiki_InitPrompt.txt). This prompt is intended to create the initial `llm_wiki.db` file.
+2. For later sessions, use [`LLM_Wiki_UpdatePrompt.txt`](LLM_Wiki_UpdatePrompt.txt) and provide the existing `llm_wiki.db` file to the LLM session. The update workflow should modify the existing database instead of creating a separate replacement.
+3. Place the resulting `llm_wiki.db` in the repository root before starting the app. On startup, the backend automatically prefers a valid populated `llm_wiki.db`.
+
+Local database files are intentionally ignored by Git, so each user can maintain their own research database without committing private data.
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
