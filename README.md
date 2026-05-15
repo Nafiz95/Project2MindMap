@@ -263,3 +263,9 @@ Project2MindMap/
 | g then o | Go to Outline |
 | g then r | Go to Review Studio |
 | g then e | Go to Export |
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
