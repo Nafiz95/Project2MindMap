@@ -1,6 +1,6 @@
-<img src="projec2mindmapLogo.png" alt="Project2MindMap" width="320" />
-
-# Project2MindMap
+<p align="center">
+  <img src="projec2mindmapLogo.png" alt="Project2MindMap" width="320" />
+</p>
 
 A local-first research knowledge management application for academics and researchers. It turns a structured SQLite database of nodes, edges, sources, and annotations into an interactive visual workspace, letting you browse your research graph, read individual nodes in depth, and track momentum across experiments and writing projects.
 
