@@ -123,6 +123,17 @@ vi.mock("./api/client", () => ({
       lint_findings: [],
     }),
     exportJson: async () => ({}),
+    activity: async () => [],
+    listJobs: async () => [],
+    candidates: async () => ({
+      job_id: "",
+      source_note: "",
+      source_title: "",
+      blocking_errors: [],
+      node_candidates: [],
+      edge_candidates: [],
+      detail_candidates: [],
+    }),
   },
 }));
 

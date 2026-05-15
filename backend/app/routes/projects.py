@@ -5,6 +5,7 @@ from app.database import get_session
 from sqlalchemy.exc import IntegrityError
 
 from app.schemas import (
+    ActivityEventOut,
     DetailBlockCreateIn,
     DetailBlockOut,
     DetailBlockPatchIn,
@@ -30,7 +31,7 @@ from app.services.edit_service import (
     update_node,
 )
 from app.services.database_profiles import LLM_WIKI_PROFILE, detect_session_profile
-from app.services.query_service import get_dashboard, get_graph, get_node_detail, get_project, get_tree, list_projects, search_nodes
+from app.services.query_service import get_activity, get_dashboard, get_graph, get_node_detail, get_project, get_tree, list_projects, search_nodes
 
 router = APIRouter()
 
@@ -115,6 +116,18 @@ def graph(project_id: str, session: Session = Depends(get_session)):
     if not get_project(session, project_id):
         raise HTTPException(status_code=404, detail="Project not found")
     return get_graph(session, project_id)
+
+
+@router.get("/projects/{project_id}/activity", response_model=list[ActivityEventOut])
+def activity(
+    project_id: str,
+    since: str = "",
+    limit: int = 50,
+    session: Session = Depends(get_session),
+):
+    if not get_project(session, project_id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    return get_activity(session, project_id, since, limit)
 
 
 @router.get("/projects/{project_id}/dashboard")

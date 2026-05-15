@@ -9,6 +9,19 @@ Project2MindMap is a local-first research knowledge-map application for explorin
 - Support for the `llm_wiki` database profile and a legacy mind-map database profile.
 - Exports for JSON, Markdown, Mermaid, CSV zip, and Obsidian zip.
 - Local runtime with no external service dependency.
+- **Atlas** — force-directed graph explorer (flag: `p2mm.feature.atlas`)
+- **Focus** — full-page editorial node-reading view (flag: `p2mm.feature.focus`)
+- **Review Studio** — ingestion candidate review UI (flag: `p2mm.feature.review`)
+- **Momentum** — temporal activity dashboard (flag: `p2mm.feature.momentum`)
+- **Spotlight** — global ⌘K command palette (flag: `p2mm.feature.spotlight`)
+- **Outline** — writing/grant editor with inline evidence citations (flag: `p2mm.feature.outline`)
+
+New views are opt-in via localStorage feature flags. To enable all at once, paste this into the browser console and reload:
+
+```js
+["atlas","focus","review","momentum","spotlight","outline"]
+  .forEach(f => localStorage.setItem(`p2mm.feature.${f}`, "on"));
+```
 
 ## Tech Stack
 

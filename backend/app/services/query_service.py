@@ -16,7 +16,84 @@ from app.models import (
     Source,
     Tag,
 )
+from datetime import datetime, timezone
+
 from app.services.database_profiles import LLM_WIKI_PROFILE, detect_session_profile
+
+
+def get_activity(session: Session, project_id: str, since: str, limit: int) -> list[dict]:
+    try:
+        since_dt = datetime.fromisoformat(since.replace("Z", "+00:00")) if since else datetime.min.replace(tzinfo=timezone.utc)
+    except ValueError:
+        since_dt = datetime.min.replace(tzinfo=timezone.utc)
+
+    events: list[dict] = []
+
+    # Gather node events
+    try:
+        nodes = session.scalars(
+            select(Node)
+            .where(Node.project_id == project_id)
+            .order_by(Node.updated_at.desc())
+            .limit(limit * 3)
+        ).all()
+        for node in nodes:
+            if not node.updated_at:
+                continue
+            try:
+                updated = datetime.fromisoformat(str(node.updated_at).replace("Z", "+00:00"))
+                if updated.tzinfo is None:
+                    updated = updated.replace(tzinfo=timezone.utc)
+            except (ValueError, AttributeError):
+                continue
+            if updated < since_dt:
+                continue
+            events.append({
+                "when": updated.isoformat(),
+                "kind": "node",
+                "verb": "updated",
+                "id": node.id,
+                "title": node.title,
+                "category": node.category,
+                "note": node.summary[:80] if node.summary else None,
+            })
+    except Exception:
+        pass
+
+    # Gather edge events
+    try:
+        edges = session.scalars(
+            select(Edge)
+            .where(Edge.project_id == project_id)
+            .order_by(Edge.updated_at.desc())
+            .limit(limit)
+        ).all()
+        for edge in edges:
+            if not edge.updated_at:
+                continue
+            try:
+                updated = datetime.fromisoformat(str(edge.updated_at).replace("Z", "+00:00"))
+                if updated.tzinfo is None:
+                    updated = updated.replace(tzinfo=timezone.utc)
+            except (ValueError, AttributeError):
+                continue
+            if updated < since_dt:
+                continue
+            events.append({
+                "when": updated.isoformat(),
+                "kind": "edge",
+                "verb": "updated",
+                "id": edge.id,
+                "title": f"{edge.relation_type}",
+                "category": None,
+                "note": edge.description[:80] if edge.description else None,
+            })
+    except Exception:
+        pass
+
+    # Sort by recency and trim
+    events.sort(key=lambda e: e["when"], reverse=True)
+    return events[:limit]
 
 
 def list_projects(session: Session) -> list[Project] | list[dict]:

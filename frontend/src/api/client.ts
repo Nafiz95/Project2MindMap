@@ -1,4 +1,4 @@
-import type { CandidateGroup, DashboardPayload, GraphPayload, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
+import type { ActivityEvent, CandidateGroup, DashboardPayload, GraphPayload, IngestionJobSummary, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
@@ -56,6 +56,14 @@ export const api = {
     request<{ status: string; created: Record<string, string[]>; updated: Record<string, string[]> }>(
       `/ingestion/jobs/${jobId}/commit`,
       { method: "POST" },
+    ),
+  reject: (jobId: string) =>
+    request<{ status: string }>(`/ingestion/jobs/${jobId}/reject`, { method: "POST" }),
+  listJobs: (projectId: string) =>
+    request<IngestionJobSummary[]>(`/projects/${projectId}/ingestion/jobs`),
+  activity: (projectId: string, since: string, limit = 50) =>
+    request<ActivityEvent[]>(
+      `/projects/${projectId}/activity?since=${encodeURIComponent(since)}&limit=${limit}`,
     ),
   exportJson: (projectId: string) => request<Record<string, unknown>>(`/projects/${projectId}/export/json`),
   exportText: async (projectId: string, format: "markdown" | "mermaid") => {

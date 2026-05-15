@@ -23,6 +23,70 @@
 11. Download CSV and Obsidian zip exports.
 12. Switch to `project2mindmap.db` from the Database tab and confirm the legacy dashboard/tree/graph still load, then switch back to `llm_wiki.db`.
 
+## Feature Acceptance — New Views (v2)
+
+Enable flags in the browser console before testing each feature:
+
+```js
+localStorage.setItem("p2mm.feature.review",   "on");
+localStorage.setItem("p2mm.feature.focus",    "on");
+localStorage.setItem("p2mm.feature.spotlight","on");
+localStorage.setItem("p2mm.feature.atlas",    "on");
+localStorage.setItem("p2mm.feature.momentum", "on");
+localStorage.setItem("p2mm.feature.outline",  "on");
+```
+
+Reload the page after setting flags; new tabs appear in the header.
+
+### Review Studio
+1. Navigate to **Review** tab (requires a pending ingestion job — trigger one via the API or use `?job=<id>` in the URL).
+2. Confirm three columns: Raw Source note on the left, Candidate Stack in the centre.
+3. Use ✓ / ✗ buttons on each candidate card. Status counter in the header updates.
+4. Approve all candidates; **Commit** button becomes active.
+5. Click **Commit** — verify toast "Committed N candidates." and automatic redirect to Momentum.
+6. Confirm **Reject job** navigates back to Momentum without writing any candidates.
+
+### Focus
+1. Click any node title in the Tree — verify navigation to the **Focus** view.
+2. Confirm three columns: breadcrumb/siblings rail, reading column (node title, aliases, lede, detail blocks), connections rail.
+3. For a Writing/Grant/Paper node, confirm the "Open in Outline →" button appears and navigates to Outline.
+4. Confirm breadcrumb correctly traces the parent chain to the root.
+
+### Spotlight (⌘K)
+1. Press **⌘K** (or **Ctrl+K** on Windows) — overlay opens.
+2. Type a search term; confirm NODES and SOURCES sections populate.
+3. Use arrow keys to navigate results; press **Enter** to navigate to the node.
+4. Press **Escape** to dismiss.
+5. Test category filter chips (Model, Experiment, Paper, etc.) — results narrow correctly.
+
+### Atlas
+1. Open the **Atlas** tab.
+2. Confirm a force-directed SVG graph renders with node circles and edge lines.
+3. Drag a node — it pins and stops being pushed by the simulation (dashed ring appears).
+4. Right-click a pinned node — context menu offers "Unpin".
+5. Use the lens rail to toggle categories on/off — nodes appear/disappear.
+6. Zoom in/out with scroll; ⊕/⊖ HUD buttons work.
+7. Click a node — right-hand node rail shows details and neighbours.
+
+### Momentum
+1. Open the **Momentum** tab.
+2. Confirm Activity Heatmap renders a 13×7 grid (last 90 days).
+3. Confirm Change Stream lists recent node/edge events with relative timestamps.
+4. Confirm Active Fronts shows progress strips for active Experiment/Writing/Grant nodes.
+5. If pending ingestion jobs exist, confirm an Attention Card appears and clicking it navigates to Review Studio.
+
+### Outline
+1. Navigate to a Writing, Grant, or Paper node; open **Outline** tab.
+2. Confirm three columns: section tree (left), doc editor (centre), evidence sidebar (right).
+3. Click a section in the tree — centre column switches to that block.
+4. Click the block text to enter edit mode; type `@` to trigger the inline node picker.
+5. Select a node from the picker — an `@[id|Title|category]` chip is inserted.
+6. Click away (blur) — content auto-saves and the chip appears styled in the evidence sidebar.
+7. Confirm the sidebar shows cited chips and suggested uncited nodes.
+8. With `llm_wiki.db` active, confirm all blocks are read-only and the orange "read-only" label appears.
+
+---
+
 ## Optional Frontend Development Check
 
 1. Start the backend:

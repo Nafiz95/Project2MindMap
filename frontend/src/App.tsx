@@ -2,17 +2,40 @@ import { useEffect, useMemo, useState } from "react";
 
 import { api, apiUrl } from "./api/client";
 import type { DashboardPayload, GraphPayload, MetadataPayload, NodeDetail, NodeSummary, TreeNode, TreePayload, WikiItem } from "./types";
+import { useGlobalKeymap } from "./utils/keymap";
+import { Spotlight } from "./components/Spotlight";
+import { ReviewStudioView } from "./views/ReviewStudio/ReviewStudioView";
+import { FocusView } from "./views/Focus/FocusView";
+import { AtlasView } from "./views/Atlas/AtlasView";
+import { MomentumView } from "./views/Momentum/MomentumView";
+import { OutlineView } from "./views/Outline/OutlineView";
 
-type ViewName = "dashboard" | "tree" | "graph" | "database" | "export";
+type ViewName =
+  | "momentum"
+  | "overview"
+  | "atlas"
+  | "focus"
+  | "outline"
+  | "review"
+  | "database"
+  | "export";
+
+const FULL_PAGE_VIEWS = new Set<ViewName>(["atlas", "focus", "momentum", "outline", "review"]);
+const ALL_VIEWS: ViewName[] = ["momentum", "overview", "atlas", "focus", "outline", "review", "database", "export"];
 
 function App() {
-  const [view, setView] = useState<ViewName>("dashboard");
+  const [view, setView] = useState<ViewName>(() => {
+    const p = new URLSearchParams(window.location.search).get("view") as ViewName | null;
+    return p && ALL_VIEWS.includes(p) ? p : "momentum";
+  });
   const [projectId, setProjectId] = useState<string | null>(null);
   const [tree, setTree] = useState<TreePayload | null>(null);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [graph, setGraph] = useState<GraphPayload | null>(null);
   const [metadata, setMetadata] = useState<MetadataPayload | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get("node"),
+  );
   const [detail, setDetail] = useState<NodeDetail | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -25,6 +48,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exportPreview, setExportPreview] = useState("");
+  const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const isWikiProfile = metadata?.database_profile?.includes("llm_wiki") ?? false;
 
   const nodesById = useMemo(() => {
     const map = new Map<string, TreeNode>();
@@ -32,25 +59,47 @@ function App() {
     return map;
   }, [tree]);
 
+  // Sync view + selectedId to URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("view", view);
+    if (selectedId) params.set("node", selectedId); else params.delete("node");
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  }, [view, selectedId]);
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  useGlobalKeymap({
+    onSpotlight: () => setSpotlightOpen(true),
+    onClose: () => { setSpotlightOpen(false); },
+    onGoAtlas:    () => setView("atlas"),
+    onGoFocus:    () => setView("focus"),
+    onGoReview:   () => setView("review"),
+    onGoMomentum: () => setView("momentum"),
+    onGoOutline:  () => setView("outline"),
+    onGoExport:   () => setView("export"),
+  });
+
   useEffect(() => {
     loadAll();
   }, []);
 
   useEffect(() => {
-    if (!selectedId) return;
-    if (!projectId) return;
+    if (!selectedId || !projectId) return;
     api
       .nodeDetail(projectId, selectedId)
       .then(setDetail)
-      .catch((err) => setError(err.message));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load node"));
   }, [selectedId, projectId]);
 
   useEffect(() => {
     const query = search.trim();
-    if (!query) {
-      setSearchResultIds(null);
-      return;
-    }
+    if (!query) { setSearchResultIds(null); return; }
     const handle = window.setTimeout(() => {
       if (!projectId) return;
       api
@@ -60,7 +109,7 @@ function App() {
           setSearchResultIds(matches);
           setExpanded((current) => expandAncestors(current, rows.map((row) => row.id), nodesById));
         })
-        .catch((err) => setError(err.message));
+        .catch((err: unknown) => setError(err instanceof Error ? err.message : "Search failed"));
     }, 180);
     return () => window.clearTimeout(handle);
   }, [search, nodesById, projectId]);
@@ -100,6 +149,11 @@ function App() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function navigateTo(v: string, nodeId?: string) {
+    setView(v as ViewName);
+    if (nodeId) setSelectedId(nodeId);
   }
 
   const filteredIds = useMemo(() => {
@@ -145,88 +199,192 @@ function App() {
     }
   }
 
-  if (loading) return <main className="center">Loading Project2MindMap...</main>;
+  if (loading) return <main className="center">Loading Project2MindMap…</main>;
+
+  const isFullPage = FULL_PAGE_VIEWS.has(view);
+
+  // Tabs shown in the header — Focus is navigated to by clicking a node, not a tab
+  const NAV_TABS: ViewName[] = ["momentum", "overview", "atlas", "outline", "review", "database", "export"];
 
   return (
     <main className="appShell">
       <header className="topBar">
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <h1>Project2MindMap</h1>
+          {projectId && (
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
+              {tree?.nodes.length ?? 0}n · {graph?.edges.length ?? 0}e
+            </span>
+          )}
         </div>
         <nav className="tabs">
-          {(["dashboard", "tree", "graph", "database", "export"] as ViewName[]).map((item) => (
-            <button key={item} className={view === item ? "activeTab" : ""} onClick={() => setView(item)}>
+          {NAV_TABS.map((item) => (
+            <button
+              key={item}
+              className={view === item || (item === "overview" && view === "focus") ? "activeTab" : ""}
+              onClick={() => setView(item)}
+            >
               {label(item)}
             </button>
           ))}
+          <button
+            onClick={() => setSpotlightOpen(true)}
+            style={{
+              marginLeft: 8,
+              padding: "3px 10px",
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              letterSpacing: "0.4px",
+              background: "var(--paper-deep)",
+              border: "1px solid var(--rule)",
+              borderRadius: 4,
+              color: "var(--muted)",
+              cursor: "pointer",
+            }}
+          >
+            ⌘K
+          </button>
         </nav>
       </header>
 
       {error && <div className="error">{error}</div>}
 
-      <section className="workspace">
-        <aside className="leftPane">
-          <FilterPanel
-            search={search}
-            setSearch={setSearch}
-            category={category}
-            setCategory={setCategory}
-            status={status}
-            setStatus={setStatus}
-            importance={importance}
-            setImportance={setImportance}
-            categories={categories}
-            statuses={statuses}
-            importances={importances}
-            matchedCount={filteredIds.size}
-            totalCount={tree?.nodes.length ?? 0}
-          />
-          <TreeToolbar
-            onExpandAll={() => setExpanded(new Set(tree?.nodes.map((node) => node.id) ?? []))}
-            onCollapseAll={() => setExpanded(new Set(tree ? treeRoots(tree) : []))}
-          />
-          <div className="treePane">
-            {(tree ? treeRoots(tree) : []).length ? (
-              (tree ? treeRoots(tree) : []).map((rootId) => (
-                <TreeBranch
-                  key={rootId}
-                  nodeId={rootId}
-                  nodesById={nodesById}
-                  visibleIds={visibleTreeIds}
-                  matchedIds={filteredIds}
-                  expanded={expanded}
-                  selectedId={selectedId}
-                  query={search}
-                  onToggle={(id) => {
-                    const next = new Set(expanded);
-                    next.has(id) ? next.delete(id) : next.add(id);
-                    setExpanded(next);
-                  }}
-                  onSelect={setSelectedId}
-                />
-              ))
-            ) : (
-              <p className="muted">No root node found.</p>
-            )}
-          </div>
-        </aside>
+      {spotlightOpen && projectId && (
+        <Spotlight
+          projectId={projectId}
+          nodesById={nodesById}
+          selectedId={selectedId}
+          onClose={() => setSpotlightOpen(false)}
+          onSelect={setSelectedId}
+          onNavigate={navigateTo}
+        />
+      )}
+
+      {toast && <div className="toast">{toast}</div>}
+
+      <section className={isFullPage ? "workspace fullPage" : "workspace"}>
+        {view === "overview" && (
+          <aside className="leftPane">
+            <FilterPanel
+              search={search}
+              setSearch={setSearch}
+              category={category}
+              setCategory={setCategory}
+              status={status}
+              setStatus={setStatus}
+              importance={importance}
+              setImportance={setImportance}
+              categories={categories}
+              statuses={statuses}
+              importances={importances}
+              matchedCount={filteredIds.size}
+              totalCount={tree?.nodes.length ?? 0}
+            />
+            <TreeToolbar
+              onExpandAll={() => setExpanded(new Set(tree?.nodes.map((node) => node.id) ?? []))}
+              onCollapseAll={() => setExpanded(new Set(tree ? treeRoots(tree) : []))}
+            />
+            <div className="treePane">
+              {(tree ? treeRoots(tree) : []).length ? (
+                (tree ? treeRoots(tree) : []).map((rootId) => (
+                  <TreeBranch
+                    key={rootId}
+                    nodeId={rootId}
+                    nodesById={nodesById}
+                    visibleIds={visibleTreeIds}
+                    matchedIds={filteredIds}
+                    expanded={expanded}
+                    selectedId={selectedId}
+                    query={search}
+                    onToggle={(id) => {
+                      const next = new Set(expanded);
+                      next.has(id) ? next.delete(id) : next.add(id);
+                      setExpanded(next);
+                    }}
+                    onSelect={(id) => { setSelectedId(id); setView("focus"); }}
+                  />
+                ))
+              ) : (
+                <p className="muted">No root node found.</p>
+              )}
+            </div>
+          </aside>
+        )}
 
         <section className="mainPane">
-          {view === "dashboard" && dashboard && <DashboardView dashboard={dashboard} onSelect={setSelectedId} setView={setView} />}
-          {view === "tree" && detail && <NodeDetailPanel detail={detail} onSelect={setSelectedId} />}
-          {view === "graph" && graph && (
-            <GraphView
-              graph={graph}
-              selectedId={selectedId}
-              category={category}
-              status={status}
-              relation={relation}
-              setRelation={setRelation}
-              depth={depth}
-              setDepth={setDepth}
-              onSelect={setSelectedId}
+          {/* Overview: prompt to select a node (left pane has the tree browser) */}
+          {view === "overview" && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", padding: 40 }}>
+              <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", color: "var(--muted)", fontSize: 16 }}>
+                Click a node in the tree to read it in Focus.
+              </p>
+            </div>
+          )}
+
+          {/* Focus — full-page node reading */}
+          {view === "focus" && projectId && selectedId && (
+            <FocusView
+              projectId={projectId}
+              nodeId={selectedId}
+              nodesById={nodesById}
+              onSelect={(id) => { setSelectedId(id); }}
+              onNavigate={navigateTo}
             />
           )}
+          {view === "focus" && (!projectId || !selectedId) && (
+            <div className="featureView" style={{ padding: 40 }}>
+              <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", color: "var(--muted)" }}>
+                Select a node from the tree or Spotlight to open it in Focus.
+              </p>
+            </div>
+          )}
+
+          {/* Atlas — force-directed graph (replaces old GraphView) */}
+          {view === "atlas" && graph && projectId && (
+            <AtlasView
+              graph={graph}
+              projectId={projectId}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onNavigate={navigateTo}
+            />
+          )}
+
+          {/* Momentum — temporal dashboard (replaces old DashboardView) */}
+          {view === "momentum" && projectId && (
+            <MomentumView
+              projectId={projectId}
+              tree={tree}
+              dashboard={dashboard}
+              onNavigate={navigateTo}
+              onSelect={(id) => { setSelectedId(id); navigateTo("focus", id); }}
+            />
+          )}
+
+          {/* Outline — writing editor for Grant/Paper/Writing nodes */}
+          {view === "outline" && projectId && selectedId && (
+            <OutlineView
+              projectId={projectId}
+              nodeId={selectedId}
+              nodesById={nodesById}
+              onNavigate={navigateTo}
+              isWikiProfile={isWikiProfile}
+            />
+          )}
+          {view === "outline" && (!projectId || !selectedId) && (
+            <div className="featureView" style={{ padding: 40 }}>
+              <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", color: "var(--muted)" }}>
+                Select a Writing, Grant, or Paper node to open it in Outline.
+              </p>
+            </div>
+          )}
+
+          {/* Review Studio */}
+          {view === "review" && (
+            <ReviewStudioView onNavigate={navigateTo} onToast={setToast} />
+          )}
+
+          {/* Database and Export */}
           {view === "database" && metadata && <DatabaseView metadata={metadata} onSwitch={switchDatabase} />}
           {view === "export" && projectId && <ExportView projectId={projectId} exportProject={exportProject} exportPreview={exportPreview} />}
         </section>
@@ -234,6 +392,8 @@ function App() {
     </main>
   );
 }
+
+// ── All the existing sub-components below are unchanged ──────────────────────
 
 function FilterPanel(props: {
   search: string;
@@ -419,7 +579,7 @@ function WikiItemSection({
             onClick={() => {
               if (!item.related_page_id) return;
               onSelect(item.related_page_id);
-              setView("tree");
+              setView("overview");
             }}
           >
             <strong>{item.title}</strong>
@@ -443,7 +603,7 @@ function DashboardSection({ title, nodes, onSelect, setView }: { title: string; 
             key={node.id}
             onClick={() => {
               onSelect(node.id);
-              setView("tree");
+              setView("overview");
             }}
           >
             <strong>{node.title}</strong>
@@ -718,6 +878,8 @@ function DataSourceRow({ label, value }: { label: string; value: string | number
   );
 }
 
+// ── Pure utility functions ────────────────────────────────────────────────────
+
 function visibleGraph(graph: GraphPayload, selectedId: string | null, category: string, status: string, relation: string, depth: "1" | "2" | "all") {
   let edges = graph.edges.filter((edge) => relation === "all" || edge.relation_type === relation);
   let nodeIds = new Set(graph.nodes.map((node) => node.id));
@@ -846,7 +1008,7 @@ function hash(value: string): number {
 }
 
 function truncate(value: string, length: number): string {
-  return value.length <= length ? value : `${value.slice(0, length - 1)}...`;
+  return value.length <= length ? value : `${value.slice(0, length - 1)}…`;
 }
 
 function unique(values: string[]): string[] {

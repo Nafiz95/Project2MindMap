@@ -74,12 +74,66 @@ export type WikiItem = {
   confidence?: number | null;
 };
 
+export type NodeCandidate = {
+  id: string;
+  proposed_node_id: string;
+  matched_existing_node_id: string | null;
+  action: "create" | "update" | "append";
+  review_status: "pending" | "approved" | "rejected" | "needs-review";
+  title: string;
+  category: string;
+  summary?: string | null;
+  status: string;
+  importance: string;
+};
+
+export type EdgeCandidate = {
+  id: string;
+  source: string;
+  target: string;
+  matched_source_node_id: string | null;
+  matched_target_node_id: string | null;
+  relation_type: string;
+  strength: string;
+  review_status: "pending" | "approved" | "rejected" | "needs-review";
+  description?: string | null;
+};
+
+export type DetailCandidate = {
+  id: string;
+  node_candidate_id: string | null;
+  matched_existing_node_id: string | null;
+  block_type: string;
+  title: string;
+  content?: string | null;
+  review_status: "pending" | "approved" | "rejected" | "needs-review";
+};
+
 export type CandidateGroup = {
   job_id: string;
-  node_candidates: Array<Record<string, unknown>>;
-  edge_candidates: Array<Record<string, unknown>>;
-  detail_candidates: Array<Record<string, unknown>>;
+  node_candidates: NodeCandidate[];
+  edge_candidates: EdgeCandidate[];
+  detail_candidates: DetailCandidate[];
   blocking_errors: string[];
+};
+
+export type ActivityEvent = {
+  when: string;
+  kind: "node" | "edge" | "detail";
+  verb: "created" | "updated";
+  id: string;
+  title: string;
+  category?: string | null;
+  note?: string | null;
+};
+
+export type IngestionJobSummary = {
+  job_id: string;
+  status: string;
+  source_title?: string | null;
+  source_type?: string | null;
+  created_at?: string | null;
+  candidate_counts: Record<string, number>;
 };
 
 export type GraphPayload = {

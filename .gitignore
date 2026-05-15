@@ -28,3 +28,12 @@ frontend/dist/
 Thumbs.db
 .vscode/
 project2mindmap_seed.json
+
+# Local design/prototype handoff artifacts
+Project2MindMap.zip
+PROMPT.md
+IMPLEMENTATION_PLAN.md
+designREADME.md
+design-canvas.jsx
+prototypes.jsx
+Prototype Directions.html

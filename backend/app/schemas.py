@@ -310,3 +310,13 @@ class CommitOut(BaseModel):
 
 class DatabaseSwitchIn(BaseModel):
     database_name: str
+
+
+class ActivityEventOut(BaseModel):
+    when: str
+    kind: str
+    verb: str
+    id: str
+    title: str
+    category: str | None = None
+    note: str | None = None
