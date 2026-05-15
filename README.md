@@ -1,141 +1,265 @@
 # Project2MindMap
 
-Project2MindMap is a local-first research knowledge-map application for exploring SQLite-backed project databases. It provides a FastAPI backend and a React/Vite frontend for browsing project trees, graph relationships, dashboard summaries, database metadata, search results, and exports.
+A local-first research knowledge management application for academics and researchers. It turns a structured SQLite database of nodes, edges, sources, and annotations into an interactive visual workspace, letting you browse your research graph, read individual nodes in depth, track momentum across experiments and writing projects, and review AI-generated ingestion candidates before committing them to the knowledge base.
 
-## Features
+No cloud. No account. Everything runs on your machine and reads directly from a `.db` file in the project folder.
 
-- SQLite-backed project loading.
-- Tree, graph, dashboard, database, search, and export views.
-- Support for the `llm_wiki` database profile and a legacy mind-map database profile.
-- Exports for JSON, Markdown, Mermaid, CSV zip, and Obsidian zip.
-- Local runtime with no external service dependency.
-- **Atlas** — force-directed graph explorer (flag: `p2mm.feature.atlas`)
-- **Focus** — full-page editorial node-reading view (flag: `p2mm.feature.focus`)
-- **Review Studio** — ingestion candidate review UI (flag: `p2mm.feature.review`)
-- **Momentum** — temporal activity dashboard (flag: `p2mm.feature.momentum`)
-- **Spotlight** — global ⌘K command palette (flag: `p2mm.feature.spotlight`)
-- **Outline** — writing/grant editor with inline evidence citations (flag: `p2mm.feature.outline`)
+---
 
-New views are opt-in via localStorage feature flags. To enable all at once, paste this into the browser console and reload:
+## What it does
 
-```js
-["atlas","focus","review","momentum","spotlight","outline"]
-  .forEach(f => localStorage.setItem(`p2mm.feature.${f}`, "on"));
-```
+Your research is modelled as a **graph of nodes** (papers, models, experiments, datasets, open questions, grants, etc.) connected by typed **edges** (uses, evaluates, supports, contradicts, and related links). Project2MindMap gives you six views into that graph:
 
-## Tech Stack
+| View | Purpose |
+|---|---|
+| **Momentum** | Temporal dashboard with activity heatmap, change stream, active experiments with progress, and attention cards for pending ingestion jobs |
+| **Overview** | Hierarchical tree browser; filter by category, status, or importance; click any node to open it in Focus |
+| **Focus** | Full-page editorial reading view with breadcrumb navigation, detail blocks, connections, sources, and open questions for a single node |
+| **Atlas** | Force-directed graph explorer with cluster, force, and radial layout modes; Knowledge, Workflow, and Risk lens presets; category and relation toggles |
+| **Outline** | Writing editor for Grant, Paper, and Writing nodes with section-by-section editing, inline `@[node]` evidence citations, and suggested citations |
+| **Review Studio** | Ingestion candidate review; approve, reject, or flag node, edge, and detail candidates produced by an LLM pipeline, then commit or reject the job |
 
-- Backend: FastAPI, SQLAlchemy, SQLite
-- Frontend: React, TypeScript, Vite
-- Tests: pytest, Vitest
+A global **Spotlight** palette (Cmd+K / Ctrl+K) lets you jump to any node or trigger actions from anywhere in the app.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12, FastAPI, SQLAlchemy, SQLite |
+| Frontend | React, TypeScript, Vite |
+| Graph layout | d3-force, d3-zoom, d3-selection |
+| Typography | Newsreader (serif), Inter (sans), JetBrains Mono |
+| Tests | pytest (backend), Vitest + Testing Library (frontend) |
+
+---
 
 ## Requirements
 
 - Python 3.12+
-- Node.js and npm
+- Node.js 18+ and npm
 
-On Windows PowerShell, use `npm.cmd` if `npm` is blocked by script execution policy.
+> **Windows note:** If `npm` is blocked by PowerShell execution policy, use `npm.cmd` instead throughout.
 
-## Running The Application
+---
 
-Build the frontend:
+## Quick start
+
+### 1 - Install dependencies
 
 ```powershell
-cd frontend
+# Backend
+cd backend
+pip install -e .
+
+# Frontend
+cd ..\frontend
 npm.cmd install
+```
+
+### 2 - Build the frontend
+
+```powershell
 npm.cmd run build
 ```
 
-Start the backend:
+### 3 - Start the server
 
 ```powershell
 cd ..\backend
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open the application:
+### 4 - Open the app
 
-```text
+```
 http://127.0.0.1:8000
 ```
 
-The API is served under `/api`, for example:
+The backend serves the compiled frontend at the root and exposes the REST API under `/api`.
 
-```text
-http://127.0.0.1:8000/api/metadata
-```
+---
 
-## Frontend Development
+## Development mode (live reload)
 
-For frontend development with Vite live reload, run the backend and frontend in separate terminals.
+Run the backend and frontend in two separate terminals.
 
-Backend:
-
+**Terminal 1 - backend:**
 ```powershell
 cd backend
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Frontend:
-
+**Terminal 2 - frontend:**
 ```powershell
 cd frontend
-npm.cmd install
 npm.cmd run dev
 ```
 
-Open:
+Open `http://localhost:5173`. Vite proxies all `/api` requests to the backend at port 8000.
 
-```text
-http://127.0.0.1:5173
-```
+---
 
-Vite proxies `/api` requests to the FastAPI backend at `http://127.0.0.1:8000`.
-
-## Data
-
-The application reads from an active SQLite database in the repository workspace.
-
-- Preferred runtime database: `llm_wiki.db`
-- Legacy runtime database: `project2mindmap.db`
-- Optional seed/import source: `project2mindmap_seed.json`
-- Schema reference: `project2mindmap_schema.sql`
-
-By default, the backend selects a valid populated `llm_wiki.db` when present. Otherwise, it falls back to `project2mindmap.db`.
-
-To select a database explicitly:
+## Utility scripts
 
 ```powershell
-$env:PROJECT2MINDMAP_DB="llm_wiki.db"
-cd backend
+.\scripts\start.ps1        # build frontend + start backend in one step
+.\scripts\build-ui.ps1     # rebuild frontend only
+.\scripts\check-runtime.ps1 # verify the running server reports expected metadata
+```
+
+---
+
+## Database
+
+The app reads from a SQLite file placed in the project root. Two database profiles are supported:
+
+| Profile | File | Description |
+|---|---|---|
+| `llm_wiki` | `llm_wiki.db` | LLM-native wiki graph; read-only profile |
+| `legacy_mindmap` | `project2mindmap.db` | Original mind-map schema; full read/write |
+
+The backend auto-selects `llm_wiki.db` when present and populated, otherwise falls back to `project2mindmap.db`.
+
+To force a specific database:
+
+```powershell
+$env:PROJECT2MINDMAP_DB = "project2mindmap.db"
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
+You can also switch databases at runtime from the **Database** tab in the UI without restarting the server.
+
+### Reference files
+
+| File | Purpose |
+|---|---|
+| `project2mindmap_schema.sql` | Canonical schema definition |
+| `project2mindmap_seed.json` | Example seed data for development |
+| `project2mindmap_seed.db` | Pre-seeded SQLite file for local testing |
+
+---
+
+## REST API
+
+All endpoints are prefixed with `/api`.
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/metadata` | Runtime info, database profile, node/edge counts |
+| GET | `/api/projects/{id}/tree` | Full node hierarchy |
+| GET | `/api/projects/{id}/graph` | Nodes and edges for graph views |
+| GET | `/api/projects/{id}/dashboard` | Counts, active experiments, open questions, writing |
+| GET | `/api/projects/{id}/nodes/{node_id}` | Full node detail with blocks, edges, sources, tags |
+| GET | `/api/projects/{id}/search?q=...` | Full-text search across nodes, details, tags, sources |
+| GET | `/api/projects/{id}/activity` | Recent activity stream (used by Momentum) |
+| GET | `/api/projects/{id}/export/{format}` | Export as JSON, Markdown, Mermaid, CSV zip, or Obsidian zip |
+| POST | `/api/projects/{id}/ingestion/jobs` | Submit a canonical ingestion payload |
+| GET | `/api/ingestion/jobs/{job_id}` | Fetch ingestion job metadata |
+| GET | `/api/ingestion/jobs/{job_id}/candidates` | Fetch candidates for a job |
+| PATCH | `/api/ingestion/candidates/{type}/{id}` | Update review status of a node / edge / detail candidate |
+| POST | `/api/ingestion/jobs/{job_id}/commit` | Commit all approved candidates to the graph |
+| POST | `/api/ingestion/jobs/{job_id}/reject` | Reject and discard a job |
+| POST | `/api/databases/switch` | Switch the active database at runtime |
+
+---
+
+## Ingestion pipeline
+
+Project2MindMap supports an **LLM ingestion loop**: an external pipeline (e.g. an LLM processing a paper, meeting note, or chat log) posts a canonical JSON payload to `/api/projects/{id}/ingestion/jobs`. The payload describes proposed nodes, edges, and detail blocks.
+
+The **Review Studio** view lets a human:
+1. Read the raw source note alongside the proposed candidates
+2. Approve, reject, or flag each candidate for review
+3. Commit the approved set; the backend writes them to the graph in one atomic transaction
+
+The `llm_wiki` database profile restricts ingestion commits to preserve read-only wiki integrity.
+
+---
+
+## Outline citation format
+
+In the Outline editor, you can cite other nodes inline using the token syntax:
+
+```
+@[nodeId|Display Text|category]
+```
+
+Example:
+
+```
+This approach builds on @[ct_clip|CT-CLIP|Model] and was validated
+against @[chexbert|CheXBert|Model] as a baseline.
+```
+
+Tokens are stored verbatim in the `detail_blocks.content` column. The editor renders them as coloured chips and the Evidence Sidebar automatically surfaces uncited but related nodes as suggestions.
+
+See [`docs/outline_doc_format.md`](docs/outline_doc_format.md) for the full specification.
+
+---
+
 ## Tests
 
-Backend:
-
+**Backend (18 tests):**
 ```powershell
 cd backend
 python -m pytest
 ```
 
-Frontend:
+Covers: API health, metadata, tree, graph, dashboard, node detail, search, exports, direct editing, database switching, ingestion create/commit/reject, llm\_wiki read-only guardrails, and seed validation.
 
+**Frontend (9 tests):**
 ```powershell
 cd frontend
-npm.cmd run build
-npm.cmd test -- --run
+npm.cmd run test -- --run
 ```
 
-## Utility Scripts
+Covers: app render with mocked API, Review Studio reducer (approve all → commit → navigate), and Outline `parseChips` serialisation helpers + EvidenceChip render.
 
-The `scripts/` directory contains optional PowerShell helpers for local development:
+---
 
-```powershell
-.\scripts\start.ps1
-.\scripts\check-runtime.ps1
-.\scripts\build-ui.ps1
+## Project structure
+
+```
+Project2MindMap/
+├── backend/
+│   ├── app/
+│   │   ├── main.py               # FastAPI app factory
+│   │   ├── routes/               # projects, ingestion, export, databases
+│   │   ├── services/             # query, ingestion, database profile logic
+│   │   ├── schemas.py            # Pydantic request/response models
+│   │   └── database.py           # SQLAlchemy session
+│   └── tests/
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx               # Root: routing, state, nav
+│   │   ├── api/client.ts         # Typed API client
+│   │   ├── types.ts              # Shared TypeScript types
+│   │   ├── styles/               # tokens.css, catTokens.ts
+│   │   ├── components/           # Spotlight, primitives (CatPill, StatusDot, …)
+│   │   └── views/                # Atlas, Focus, Momentum, Outline, ReviewStudio
+│   └── index.html
+├── docs/
+│   ├── manual_acceptance.md      # Feature acceptance runbook
+│   └── outline_doc_format.md     # @[...] citation format spec
+├── scripts/                      # PowerShell dev helpers
+├── llm_wiki.db                   # Active database (not committed to VCS)
+└── project2mindmap_schema.sql    # Schema reference
 ```
 
-These scripts are convenience wrappers around the manual commands above.
+---
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| Cmd+K / Ctrl+K | Open Spotlight |
+| ? | Open Spotlight |
+| Esc | Close Spotlight / overlay |
+| g then a | Go to Atlas |
+| g then f | Go to Focus |
+| g then m | Go to Momentum |
+| g then o | Go to Outline |
+| g then r | Go to Review Studio |
+| g then e | Go to Export |
