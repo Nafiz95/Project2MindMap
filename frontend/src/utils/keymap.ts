@@ -5,7 +5,6 @@ export type KeymapHandlers = {
   onGoAtlas?: () => void;
   onGoFocus?: () => void;
   onGoMomentum?: () => void;
-  onGoExport?: () => void;
   onClose?: () => void;
   onNext?: () => void;
   onPrev?: () => void;
@@ -54,7 +53,6 @@ export function useGlobalKeymap(handlers: KeymapHandlers) {
           case "a": h.onGoAtlas?.(); break;
           case "f": h.onGoFocus?.(); break;
           case "m": h.onGoMomentum?.(); break;
-          case "e": h.onGoExport?.(); break;
         }
       }
     };

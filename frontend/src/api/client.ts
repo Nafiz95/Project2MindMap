@@ -1,4 +1,4 @@
-import type { ActivityEvent, DashboardPayload, GraphPayload, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
+import type { ActivityEvent, GraphPayload, MetadataPayload, NodeDetail, TreeNode, TreePayload } from "../types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
@@ -36,7 +36,6 @@ export const api = {
       body: JSON.stringify({ database_name: databaseName }),
     }),
   tree: (projectId: string) => request<TreePayload>(`/projects/${projectId}/tree`),
-  dashboard: (projectId: string) => request<DashboardPayload>(`/projects/${projectId}/dashboard`),
   graph: (projectId: string) => request<GraphPayload>(`/projects/${projectId}/graph`),
   nodeDetail: (projectId: string, nodeId: string) => request<NodeDetail>(`/projects/${projectId}/nodes/${nodeId}`),
   search: (projectId: string, query: string) =>
@@ -45,10 +44,4 @@ export const api = {
     request<ActivityEvent[]>(
       `/projects/${projectId}/activity?since=${encodeURIComponent(since)}&limit=${limit}`,
     ),
-  exportJson: (projectId: string) => request<Record<string, unknown>>(`/projects/${projectId}/export/json`),
-  exportText: async (projectId: string, format: "markdown" | "mermaid") => {
-    const response = await fetch(apiUrl(`/projects/${projectId}/export/${format}`));
-    if (!response.ok) throw new Error(await response.text());
-    return response.text();
-  },
 };

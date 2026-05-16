@@ -147,6 +147,7 @@ export function AtlasView({
         graph={graph}
         loading={detailLoading}
         onSelect={(id) => { onSelect(id); }}
+        onOpenFocus={(id) => { onSelect(id); onNavigate("focus", id); }}
       />
     </div>
   );

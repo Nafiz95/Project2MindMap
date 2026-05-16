@@ -122,7 +122,6 @@ vi.mock("./api/client", () => ({
       open_questions: [],
       lint_findings: [],
     }),
-    exportJson: async () => ({}),
     activity: async () => [],
   },
 }));

@@ -1,27 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 
 import logoUrl from "./assets/logo.png";
-import { api, apiUrl } from "./api/client";
+import { api } from "./api/client";
 import type { GraphPayload, MetadataPayload, TreeNode, TreePayload } from "./types";
 import { useGlobalKeymap } from "./utils/keymap";
 import { Spotlight } from "./components/Spotlight";
 import { FocusView } from "./views/Focus/FocusView";
 import { AtlasView } from "./views/Atlas/AtlasView";
 import { MomentumView } from "./views/Momentum/MomentumView";
+import { ConstellationGrid } from "./views/Overview/ConstellationGrid";
 
 type ViewName =
   | "momentum"
   | "overview"
   | "atlas"
   | "focus"
-  | "database"
-  | "export";
+  | "database";
 
 const FULL_PAGE_VIEWS = new Set<ViewName>(["atlas", "focus", "momentum"]);
-const ALL_VIEWS: ViewName[] = ["momentum", "overview", "atlas", "focus", "database", "export"];
+const ALL_VIEWS: ViewName[] = ["momentum", "overview", "atlas", "focus", "database"];
 
 function App() {
-  const [view, setView] = useState<ViewName>("momentum");
+  const [view, setView] = useState<ViewName>("overview");
   const [projectId, setProjectId] = useState<string | null>(null);
   const [tree, setTree] = useState<TreePayload | null>(null);
   const [graph, setGraph] = useState<GraphPayload | null>(null);
@@ -35,7 +35,6 @@ function App() {
   const [searchResultIds, setSearchResultIds] = useState<Set<string> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [exportPreview, setExportPreview] = useState("");
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -60,10 +59,10 @@ function App() {
     onGoAtlas:    () => setView("atlas"),
     onGoFocus:    () => setView("focus"),
     onGoMomentum: () => setView("momentum"),
-    onGoExport:   () => setView("export"),
   });
 
   useEffect(() => {
+    if (window.location.search) history.replaceState(null, "", window.location.pathname);
     loadAll();
   }, []);
 
@@ -144,15 +143,6 @@ function App() {
   const statuses = useMemo(() => unique(tree?.nodes.map((node) => node.status) ?? []), [tree]);
   const importances = useMemo(() => unique(tree?.nodes.map((node) => node.importance) ?? []), [tree]);
 
-  async function exportProject(format: "json" | "markdown" | "mermaid") {
-    if (!projectId) return;
-    const payload =
-      format === "json"
-        ? JSON.stringify(await api.exportJson(projectId), null, 2)
-        : await api.exportText(projectId, format);
-    setExportPreview(payload.slice(0, 10000));
-  }
-
   async function switchDatabase(databaseName: string) {
     setError(null);
     try {
@@ -169,13 +159,13 @@ function App() {
   const isFullPage = FULL_PAGE_VIEWS.has(view);
 
   // Tabs shown in the header — Focus is navigated to by clicking a node, not a tab
-  const NAV_TABS: ViewName[] = ["momentum", "overview", "atlas", "database", "export"];
+  const NAV_TABS: ViewName[] = ["momentum", "overview", "atlas", "database"];
 
   return (
     <main className="appShell">
       <header className="topBar">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src={logoUrl} alt="Project2MindMap" style={{ height: 96, width: "auto", display: "block" }} />
+          <img src={logoUrl} alt="Project2MindMap" style={{ height: "clamp(48px, 5.9vw, 85px)", width: "auto", display: "block" }} />
           {projectId && (
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
               {tree?.nodes.length ?? 0}n · {graph?.edges.length ?? 0}e
@@ -245,45 +235,19 @@ function App() {
               matchedCount={filteredIds.size}
               totalCount={tree?.nodes.length ?? 0}
             />
-            <TreeToolbar
-              onExpandAll={() => setExpanded(new Set(tree?.nodes.map((node) => node.id) ?? []))}
-              onCollapseAll={() => setExpanded(new Set(tree ? treeRoots(tree) : []))}
-            />
-            <div className="treePane">
-              {(tree ? treeRoots(tree) : []).length ? (
-                (tree ? treeRoots(tree) : []).map((rootId) => (
-                  <TreeBranch
-                    key={rootId}
-                    nodeId={rootId}
-                    nodesById={nodesById}
-                    visibleIds={visibleTreeIds}
-                    matchedIds={filteredIds}
-                    expanded={expanded}
-                    selectedId={selectedId}
-                    query={search}
-                    onToggle={(id) => {
-                      const next = new Set(expanded);
-                      next.has(id) ? next.delete(id) : next.add(id);
-                      setExpanded(next);
-                    }}
-                    onSelect={(id) => { setSelectedId(id); setView("focus"); }}
-                  />
-                ))
-              ) : (
-                <p className="muted">No root node found.</p>
-              )}
-            </div>
           </aside>
         )}
 
         <section className="mainPane">
-          {/* Overview: prompt to select a node (left pane has the tree browser) */}
-          {view === "overview" && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", padding: 40 }}>
-              <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", color: "var(--muted)", fontSize: 16 }}>
-                Click a node in the tree to read it in Focus.
-              </p>
-            </div>
+          {/* Overview: constellation card grid */}
+          {view === "overview" && tree && (
+            <ConstellationGrid
+              tree={tree}
+              nodesById={nodesById}
+              filteredIds={filteredIds}
+              hasActiveFilter={!!(search.trim() || category !== "all" || status !== "all" || importance !== "all")}
+              onSelect={(id) => { setSelectedId(id); setView("focus"); }}
+            />
           )}
 
           {/* Focus — full-page node reading */}
@@ -325,9 +289,7 @@ function App() {
             />
           )}
 
-          {/* Database and Export */}
           {view === "database" && metadata && <DatabaseView metadata={metadata} onSwitch={switchDatabase} />}
-          {view === "export" && projectId && <ExportView projectId={projectId} exportProject={exportProject} exportPreview={exportPreview} />}
         </section>
       </section>
     </main>
@@ -447,29 +409,6 @@ function TreeBranch({
   );
 }
 
-function ExportView({
-  projectId,
-  exportProject,
-  exportPreview,
-}: {
-  projectId: string;
-  exportProject: (format: "json" | "markdown" | "mermaid") => void;
-  exportPreview: string;
-}) {
-  return (
-    <section>
-      <h2>Export</h2>
-      <div className="buttonRow">
-        <button onClick={() => exportProject("json")}>Preview JSON</button>
-        <button onClick={() => exportProject("markdown")}>Preview Markdown</button>
-        <button onClick={() => exportProject("mermaid")}>Preview Mermaid</button>
-        <a href={apiUrl(`/projects/${projectId}/export/csv`)}>Download CSV Zip</a>
-        <a href={apiUrl(`/projects/${projectId}/export/obsidian`)}>Download Obsidian Zip</a>
-      </div>
-      {exportPreview && <pre className="exportPreview">{exportPreview}</pre>}
-    </section>
-  );
-}
 
 function DatabaseView({
   metadata,

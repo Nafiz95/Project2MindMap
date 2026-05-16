@@ -8,11 +8,13 @@ export function AtlasNodeRail({
   graph,
   loading,
   onSelect,
+  onOpenFocus,
 }: {
   nodeDetail: NodeDetail | null;
   graph: GraphPayload;
   loading: boolean;
   onSelect: (id: string) => void;
+  onOpenFocus: (id: string) => void;
 }) {
   if (loading) {
     return (
@@ -103,10 +105,28 @@ export function AtlasNodeRail({
           </p>
         )}
         {nodeDetail.tags.length > 0 && (
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)", margin: 0 }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)", margin: "0 0 12px" }}>
             tags · {nodeDetail.tags.slice(0, 5).join(", ")}
           </p>
         )}
+        <button
+          onClick={() => onOpenFocus(node.id)}
+          style={{
+            marginTop: 4,
+            width: "100%",
+            padding: "7px 0",
+            fontFamily: "var(--font-sans)",
+            fontSize: 12,
+            fontWeight: 500,
+            color: "var(--paper)",
+            background: "var(--ink)",
+            border: "none",
+            borderRadius: 4,
+            cursor: "pointer",
+          }}
+        >
+          Open in Focus →
+        </button>
       </div>
     </div>
   );

@@ -154,7 +154,6 @@ All endpoints are prefixed with `/api`.
 | GET | `/api/projects/{id}/nodes/{node_id}` | Full node detail with blocks, edges, sources, tags |
 | GET | `/api/projects/{id}/search?q=...` | Full-text search across nodes, details, tags, sources |
 | GET | `/api/projects/{id}/activity` | Recent activity stream (used by Momentum) |
-| GET | `/api/projects/{id}/export/{format}` | Export as JSON, Markdown, Mermaid, CSV zip, or Obsidian zip |
 | POST | `/api/databases/switch` | Switch the active database at runtime |
 
 ---
@@ -167,7 +166,7 @@ cd backend
 python -m pytest
 ```
 
-Covers: API health, metadata, tree, graph, dashboard, node detail, search, exports, direct editing, database switching, ingestion create/commit/reject, llm\_wiki read-only guardrails, and seed validation.
+Covers: API health, metadata, tree, graph, dashboard, node detail, search, direct editing, database switching, ingestion create/commit/reject, llm\_wiki read-only guardrails, and seed validation.
 
 **Frontend (3 tests):**
 ```powershell
@@ -198,7 +197,7 @@ Project2MindMap/
 │   │   ├── types.ts              # Shared TypeScript types
 │   │   ├── styles/               # tokens.css, catTokens.ts
 │   │   ├── components/           # Spotlight, primitives (CatPill, StatusDot, …)
-│   │   └── views/                # Atlas, Focus, Momentum
+│   │   └── views/                # Atlas, Focus, Momentum, Overview
 │   └── index.html
 ├── docs/
 │   └── manual_acceptance.md      # Feature acceptance runbook
@@ -219,7 +218,6 @@ Project2MindMap/
 | g then a | Go to Atlas |
 | g then f | Go to Focus |
 | g then m | Go to Momentum |
-| g then e | Go to Export |
 
 ---
 
