@@ -200,7 +200,9 @@ Project2MindMap/
 │   │   └── views/                # Atlas, Focus, Momentum, Overview
 │   └── index.html
 ├── docs/
-│   └── manual_acceptance.md      # Feature acceptance runbook
+│   ├── README.md                 # Documentation index
+│   ├── manual_acceptance.md      # Manual QA runbook
+│   └── llm_wiki_workflow.md      # Database creation/update workflow
 ├── scripts/                      # PowerShell dev helpers
 ├── llm_wiki.db                   # Active database (not committed to VCS)
 └── project2mindmap_schema.sql    # Schema reference
@@ -223,7 +225,7 @@ Project2MindMap/
 
 ## Creating and updating `llm_wiki.db`
 
-The `llm_wiki.db` file is the core database used by the app. It is generated and maintained through the LLM wiki prompt workflow:
+The `llm_wiki.db` file is the core database used by the app. This workflow is inspired by Andrej Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), a pattern for building personal knowledge bases with LLMs. In Project2MindMap, the same idea is adapted into a SQLite-backed research graph:
 
 1. For the first session of a project, use [`LLM_Wiki_InitPrompt.txt`](LLM_Wiki_InitPrompt.txt). This prompt is intended to create the initial `llm_wiki.db` file.
 2. For later sessions, use [`LLM_Wiki_UpdatePrompt.txt`](LLM_Wiki_UpdatePrompt.txt) and provide the existing `llm_wiki.db` file to the LLM session. The update workflow should modify the existing database instead of creating a separate replacement.
