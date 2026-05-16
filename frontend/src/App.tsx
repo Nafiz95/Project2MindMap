@@ -164,28 +164,30 @@ function App() {
   return (
     <main className="appShell">
       <header className="topBar">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <img src={logoUrl} alt="Project2MindMap" style={{ height: "clamp(48px, 5.9vw, 85px)", width: "auto", display: "block" }} />
+          <nav className="tabs">
+            {NAV_TABS.map((item) => (
+              <button
+                key={item}
+                className={view === item || (item === "overview" && view === "focus") ? "activeTab" : ""}
+                onClick={() => setView(item)}
+              >
+                {label(item)}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {projectId && (
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
               {tree?.nodes.length ?? 0}n · {graph?.edges.length ?? 0}e
             </span>
           )}
-        </div>
-        <nav className="tabs">
-          {NAV_TABS.map((item) => (
-            <button
-              key={item}
-              className={view === item || (item === "overview" && view === "focus") ? "activeTab" : ""}
-              onClick={() => setView(item)}
-            >
-              {label(item)}
-            </button>
-          ))}
           <button
             onClick={() => setSpotlightOpen(true)}
             style={{
-              marginLeft: 8,
+              marginLeft: 4,
               padding: "3px 10px",
               fontFamily: "var(--font-mono)",
               fontSize: 10,
@@ -199,7 +201,7 @@ function App() {
           >
             ⌘K
           </button>
-        </nav>
+        </div>
       </header>
 
       {error && <div className="error">{error}</div>}

@@ -2,6 +2,13 @@
   <img src="projec2mindmapLogo.png" alt="Project2MindMap" width="320" />
 </p>
 
+<p align="center">
+  <strong>Created by <a href="mailto:nafizsadmanpreetom@gmail.com">Nafiz Sadman</a></strong><br/>
+  Licensed under the <a href="LICENSE">Apache License 2.0</a>
+</p>
+
+---
+
 A local-first research knowledge management application for academics and researchers. It turns a structured SQLite database of nodes, edges, sources, and annotations into an interactive visual workspace, letting you browse your research graph, read individual nodes in depth, and track momentum across experiments and writing projects.
 
 No cloud. No account. Everything runs on your machine and reads directly from a `.db` file in the project folder.
@@ -235,6 +242,20 @@ Local database files are intentionally ignored by Git, so each user can maintain
 
 ---
 
+## Author
+
+**Nafiz Sadman** — original creator and maintainer.
+Contact: [nafizsadmanpreetom@gmail.com](mailto:nafizsadmanpreetom@gmail.com)
+
+---
+
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+Copyright 2025 Nafiz Sadman (nafizsadmanpreetom@gmail.com)
+
+Licensed under the **Apache License, Version 2.0**. You may not use this project except in compliance with the License. See [LICENSE](LICENSE) for the full text.
+
+Any redistribution or derivative work must:
+- Retain the original copyright notice and this license
+- Carry the [NOTICE](NOTICE) file unchanged
+- Clearly state any modifications made to the original work
