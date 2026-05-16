@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { zoom as d3Zoom, zoomIdentity } from "d3-zoom";
 import { select } from "d3-selection";
 import { catStyle } from "../../styles/catTokens";
@@ -48,6 +48,9 @@ export function AtlasCanvas({
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
+  // Dimming only activates after the user first interacts with the canvas,
+  // so Atlas never opens with nodes already dimmed due to a prior selection.
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [transform, setTransform] = [
     useRef({ k: 1, x: 0, y: 0 }),
     useCallback((t: { k: number; x: number; y: number }) => {
@@ -76,6 +79,21 @@ export function AtlasCanvas({
 
   const activeId = hoveredId ?? selectedId;
 
+  // Compute the neighbourhood: activeId + all directly connected node IDs.
+  // Only active after first user interaction so Atlas never opens pre-dimmed.
+  const neighbourhood = hasInteracted && activeId
+    ? new Set<string>(
+        edges.reduce<string[]>(
+          (acc, e) => {
+            if (e.source?.id === activeId) acc.push(e.target?.id ?? "");
+            if (e.target?.id === activeId) acc.push(e.source?.id ?? "");
+            return acc;
+          },
+          [activeId],
+        ),
+      )
+    : null;
+
   return (
     <svg
       ref={svgRefCb}
@@ -88,6 +106,7 @@ export function AtlasCanvas({
           if (!s || !t) return null;
           const { cx, cy } = bezierMidControl(s.x, s.y, t.x, t.y);
           const isActive = activeId === s.id || activeId === t.id;
+          const isDimmed = neighbourhood !== null && !isActive;
           return (
             <g key={edge.id}>
               <path
@@ -95,7 +114,7 @@ export function AtlasCanvas({
                 fill="none"
                 stroke={isActive ? "var(--ink)" : "var(--rule)"}
                 strokeWidth={isActive ? 1.2 : 0.8}
-                opacity={isActive ? 0.9 : 0.55}
+                opacity={isDimmed ? 0.1 : isActive ? 0.9 : 0.55}
               />
               {isActive && (
                 <text
@@ -122,15 +141,17 @@ export function AtlasCanvas({
           const r = nodeRadius(node.importance);
           const isSelected = selectedId === node.id;
           const isHovered = hoveredId === node.id;
+          const inNeighbourhood = neighbourhood === null || neighbourhood.has(node.id);
+          const isDimmed = neighbourhood !== null && !inNeighbourhood;
           return (
             <g
               key={node.id}
               transform={`translate(${node.x},${node.y})`}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", opacity: isDimmed ? 0.15 : 1, transition: "opacity 0.15s ease" }}
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => onSelect(node.id)}
+              onClick={() => { setHasInteracted(true); onSelect(node.id); }}
               onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick(node.id); }}
-              onMouseEnter={() => onHover(node.id)}
+              onMouseEnter={() => { setHasInteracted(true); onHover(node.id); }}
               onMouseLeave={() => onHover(null)}
               onContextMenu={(e) => { e.preventDefault(); onUnpin(node.id); }}
             >
@@ -155,8 +176,8 @@ export function AtlasCanvas({
                 style={{
                   fontFamily: "var(--font-sans)",
                   fontSize: Math.max(9, Math.min(11, 10)),
-                  fill: "var(--ink-2)",
-                  fontWeight: 500,
+                  fill: isHovered || isSelected ? "var(--ink)" : "var(--ink-2)",
+                  fontWeight: isHovered || isSelected ? 600 : 500,
                   textAnchor: "middle",
                   pointerEvents: "none",
                   userSelect: "none",
