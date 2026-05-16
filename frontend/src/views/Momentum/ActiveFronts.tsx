@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client";
 import type { NodeDetail, TreeNode } from "../../types";
 import { catStyle } from "../../styles/catTokens";
@@ -19,9 +19,10 @@ export function ActiveFronts({
 }) {
   const [details, setDetails] = useState<Map<string, NodeDetail>>(new Map());
 
-  const activeNodes = nodes
-    .filter((n) => ACTIVE_CATEGORIES.has(n.category) && n.status === "active")
-    .slice(0, 6);
+  const activeNodes = useMemo(
+    () => nodes.filter((n) => ACTIVE_CATEGORIES.has(n.category) && n.status === "active").slice(0, 6),
+    [nodes],
+  );
 
   useEffect(() => {
     Promise.all(
@@ -29,7 +30,7 @@ export function ActiveFronts({
         api.nodeDetail(projectId, n.id).then((d) => [n.id, d] as [string, NodeDetail]),
       ),
     ).then((pairs) => setDetails(new Map(pairs))).catch(() => {});
-  }, [projectId, nodes.length]);
+  }, [projectId, activeNodes]);
 
   if (activeNodes.length === 0) return null;
 

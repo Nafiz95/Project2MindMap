@@ -3,9 +3,6 @@ import { api } from "../api/client";
 import type { TreeNode } from "../types";
 import { CatPill } from "./primitives/CatPill";
 
-type Filter = "title" | "summary" | "tags" | "aliases" | "details" | "sources";
-const ALL_FILTERS: Filter[] = ["title", "summary", "tags", "aliases", "details", "sources"];
-
 function highlightQuery(text: string, query: string) {
   if (!query.trim()) return <>{text}</>;
   const idx = text.toLowerCase().indexOf(query.trim().toLowerCase());
@@ -40,7 +37,6 @@ export function Spotlight({
   const [results, setResults] = useState<TreeNode[]>([]);
   const [selIdx, setSelIdx] = useState(0);
   const [timing, setTiming] = useState(0);
-  const [activeFilters, setActiveFilters] = useState<Set<Filter>>(new Set(ALL_FILTERS));
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -115,14 +111,6 @@ export function Spotlight({
     } else if (e.key === "Escape") {
       onClose();
     }
-  }
-
-  function toggleFilter(f: Filter) {
-    setActiveFilters((prev) => {
-      const next = new Set(prev);
-      next.has(f) ? next.delete(f) : next.add(f);
-      return next;
-    });
   }
 
   let rowIndex = 0;
@@ -222,26 +210,6 @@ export function Spotlight({
 
         {/* Footer */}
         <div className="spotlightFooter">
-          <span>
-            filter:{" "}
-            {ALL_FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => toggleFilter(f)}
-                style={{
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10,
-                  color: activeFilters.has(f) ? "var(--ink)" : "var(--muted)",
-                  padding: "0 4px",
-                }}
-              >
-                {f}
-              </button>
-            ))}
-          </span>
           {results.length > 0 && (
             <span>{results.length} results · {timing}ms</span>
           )}

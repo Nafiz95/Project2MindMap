@@ -34,13 +34,6 @@ vi.mock("./api/client", () => ({
         },
       ],
     }),
-    dashboard: async () => ({
-      counts: { nodes: 2, edges: 1, sources: 0, active: 2, high_importance: 2 },
-      active_experiments: [],
-      open_questions: [],
-      writing_and_grants: [],
-      recent_nodes: [],
-    }),
     graph: async () => ({
       project_id: "vlm_radiology",
       nodes: [],
@@ -129,5 +122,5 @@ vi.mock("./api/client", () => ({
 test("renders seeded project tree", async () => {
   render(<App />);
   expect(await screen.findByAltText("Project2MindMap")).toBeInTheDocument();
-  expect(screen.queryByText("VLM Radiology Research Program")).not.toBeInTheDocument();
+  expect(await screen.findByText("CT-CLIP")).toBeInTheDocument();
 });

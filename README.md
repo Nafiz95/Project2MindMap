@@ -251,7 +251,7 @@ Contact: [nafizsadmanpreetom@gmail.com](mailto:nafizsadmanpreetom@gmail.com)
 
 ## License
 
-Copyright 2025 Nafiz Sadman (nafizsadmanpreetom@gmail.com)
+Copyright 2025-2026 Nafiz Sadman (nafizsadmanpreetom@gmail.com)
 
 Licensed under the **Apache License, Version 2.0**. You may not use this project except in compliance with the License. See [LICENSE](LICENSE) for the full text.
 

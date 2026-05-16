@@ -85,8 +85,8 @@ export function AtlasCanvas({
     ? new Set<string>(
         edges.reduce<string[]>(
           (acc, e) => {
-            if (e.source?.id === activeId) acc.push(e.target?.id ?? "");
-            if (e.target?.id === activeId) acc.push(e.source?.id ?? "");
+            if (e.source?.id === activeId && e.target?.id) acc.push(e.target.id);
+            if (e.target?.id === activeId && e.source?.id) acc.push(e.source.id);
             return acc;
           },
           [activeId],
